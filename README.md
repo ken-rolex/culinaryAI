@@ -32,13 +32,13 @@ This Next.js application helps you generate recipes from ingredients, get person
     ```
 
 3.  **Set up Environment Variables:**
-    - Rename the `.env.example` file (if present) to `.env` or create a new `.env` file in the root directory.
-    - Add your Google Generative AI API key to the `.env` file:
+    - **Crucial Step:** Create a `.env` file in the root directory of the project.
+    - Add your Google Generative AI API key to the `.env` file. **The AI features (recipe generation, health plan, diet chat, exercise recommendations) will not work without a valid API key.**
       ```dotenv
       # Get your API key from Google AI Studio: https://aistudio.google.com/app/apikey
       GOOGLE_GENAI_API_KEY="YOUR_API_KEY_HERE"
       ```
-    - **Important:** Replace `"YOUR_API_KEY_HERE"` with your actual API key.
+    - **Important:** Replace `"YOUR_API_KEY_HERE"` with your actual API key obtained from Google AI Studio. Make sure the key is active and has the necessary permissions. If you encounter errors related to API calls (like 400 Bad Request or API key invalid), double-check this step.
 
 4.  **Run the development server:**
     ```bash

@@ -95,12 +95,22 @@ export default function ImageUploadPage() {
        });
     } catch (err) {
       console.error('Error extracting ingredients:', err);
-      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setError(`Failed to extract ingredients: ${errorMsg}. Please try a clearer image or check your API key configuration.`);
+      let errorMsg = 'An unknown error occurred.';
+      let errorTitle = "Extraction Failed";
+      if (err instanceof Error) {
+          errorMsg = err.message;
+           if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+              errorTitle = "API Key Error";
+              errorMsg = "Could not extract ingredients. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+           } else {
+               errorMsg = `Could not extract ingredients: ${errorMsg}. Try a clearer image.`;
+           }
+      }
+      setError(errorMsg); // Set local error state for display
       toast({
           variant: "destructive",
-          title: "Extraction Failed",
-          description: `Could not extract ingredients. Check the image or API key. Error: ${errorMsg}`,
+          title: errorTitle,
+          description: errorMsg, // Use the refined message
       });
     } finally {
       setIsExtracting(false);
@@ -132,12 +142,22 @@ export default function ImageUploadPage() {
        });
     } catch (err) {
       console.error('Error generating recipe:', err);
-       const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setError(`Failed to generate recipe: ${errorMsg}. Please check your API key configuration.`);
+       let errorMsg = 'An unknown error occurred.';
+       let errorTitle = "Recipe Generation Failed";
+        if (err instanceof Error) {
+           errorMsg = err.message;
+            if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+               errorTitle = "API Key Error";
+               errorMsg = "Could not generate recipe. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+            } else {
+                errorMsg = `Could not generate a recipe with these ingredients: ${errorMsg}`;
+            }
+        }
+       setError(errorMsg); // Set local error state for display
        toast({
          variant: "destructive",
-         title: "Recipe Generation Failed",
-         description: `Could not generate a recipe with these ingredients. Check API key. Error: ${errorMsg}`,
+         title: errorTitle,
+         description: errorMsg, // Use the refined message
        });
     } finally {
       setIsGenerating(false);

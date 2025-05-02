@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, GripVertical, Trash2, Utensils, Dumbbell, Edit, Clock } from 'lucide-react';
+import { PlusCircle, GripVertical, Trash2, Utensils, Dumbbell, Edit, Clock, AlertTriangle } from 'lucide-react'; // Added AlertTriangle
 import { useToast } from "@/hooks/use-toast";
 import { SortableItem } from '@/components/sortable-item'; // Needs to be created
 import { recommendExercises, RecommendExercisesInput, RecommendExercisesOutput } from '@/ai/flows/recommend-exercises';
@@ -246,8 +246,24 @@ export default function DailyPlannerPage() {
 
     } catch (err) {
         console.error("Error generating exercises:", err);
-        const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
-        toast({ variant: "destructive", title: "Generation Failed", description: `Could not fetch exercise recommendations: ${errorMsg}. Check API key.` });
+        let errorMsg = 'An unknown error occurred.';
+        let errorTitle = "Generation Failed";
+        if (err instanceof Error) {
+            errorMsg = err.message;
+            // Check if the error message indicates an API key issue (common with 400 Bad Request)
+            if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+                errorTitle = "API Key Error";
+                errorMsg = "Could not fetch recommendations. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+            } else {
+                 errorMsg = `Could not fetch exercise recommendations: ${errorMsg}.`;
+            }
+        }
+
+        toast({
+            variant: "destructive",
+            title: errorTitle,
+            description: errorMsg
+         });
     } finally {
         setIsGeneratingExercises(false);
     }
@@ -308,7 +324,9 @@ export default function DailyPlannerPage() {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setEditingItem(null)}>Cancel</Button>
+                            <DialogClose asChild>
+                                <Button type="button" variant="outline">Cancel</Button>
+                            </DialogClose>
                             <Button type="button" onClick={saveEditItem}>Save Changes</Button>
                         </DialogFooter>
                     </DialogContent>
@@ -463,6 +481,7 @@ export default function DailyPlannerPage() {
               </DndContext>
           ) : (
              <div className="text-center text-muted-foreground py-10 border border-dashed rounded-lg">
+                 <AlertTriangle className="mx-auto h-10 w-10 text-muted-foreground/50 mb-4" />
                 <p className="mb-2">Your planner is empty.</p>
                  <p className="text-sm">Add items using the form above or get exercise recommendations!</p>
              </div>

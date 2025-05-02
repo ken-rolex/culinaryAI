@@ -100,17 +100,27 @@ export default function DietChatPage() {
 
     } catch (err) {
       console.error('Error calling chat assistant:', err);
-      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
+      let errorMsg = 'An unknown error occurred.';
+      let errorTitle = "Chat Error";
+      if (err instanceof Error) {
+          errorMsg = err.message;
+           if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+              errorTitle = "API Key Error";
+              errorMsg = "Could not get a response. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+           } else {
+               errorMsg = `Sorry, I couldn't get a response: ${errorMsg}. Please try again.`;
+           }
+      }
       toast({
         variant: "destructive",
-        title: "Chat Error",
-        description: `Sorry, I couldn't get a response: ${errorMsg}. Please check your API key and try again.`,
+        title: errorTitle,
+        description: errorMsg, // Use refined message
       });
       // Optionally add an error message to the chat
        const errorAssistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I encountered an error (${errorMsg}). Please try asking again or check your API key.`
+        content: `I encountered an error. Please ensure your API key is valid and try again.` // Simplified error message in chat
       };
        setMessages(prev => [...prev, errorAssistantMessage]);
 

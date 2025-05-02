@@ -153,12 +153,22 @@ export default function HealthMeter() {
       });
     } catch (err) {
       console.error('Error generating health plan:', err);
-      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setError(`Failed to generate health plan: ${errorMsg}. Please check your inputs or API key configuration.`);
+      let errorMsg = 'An unknown error occurred.';
+      let errorTitle = "Plan Generation Failed";
+       if (err instanceof Error) {
+          errorMsg = err.message;
+           if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+              errorTitle = "API Key Error";
+              errorMsg = "Could not generate health plan. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+           } else {
+               errorMsg = `Failed to generate health plan: ${errorMsg}. Check your inputs.`;
+           }
+       }
+      setError(errorMsg); // Set local error state for display
       toast({
         variant: "destructive",
-        title: "Plan Generation Failed",
-        description: `Could not generate a health plan. Check API key. Error: ${errorMsg}`,
+        title: errorTitle,
+        description: errorMsg, // Use refined message
       });
     } finally {
       setIsLoading(false);

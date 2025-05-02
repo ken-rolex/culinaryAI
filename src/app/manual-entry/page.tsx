@@ -55,11 +55,21 @@ export default function ManualEntryPage() {
        });
     } catch (err) {
       console.error('Error generating recipe:', err);
-       const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
+       let errorMsg = 'An unknown error occurred.';
+       let errorTitle = "Recipe Generation Failed";
+        if (err instanceof Error) {
+           errorMsg = err.message;
+            if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+               errorTitle = "API Key Error";
+               errorMsg = "Could not generate recipe. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+            } else {
+                errorMsg = `Failed to generate recipe: ${errorMsg}. Please try again.`;
+            }
+        }
        toast({
          variant: "destructive",
-         title: "Uh oh! Something went wrong.",
-         description: `Failed to generate recipe: ${errorMsg}. Please check your API key configuration and try again.`,
+         title: errorTitle,
+         description: errorMsg,
        });
     } finally {
       setIsLoading(false);
