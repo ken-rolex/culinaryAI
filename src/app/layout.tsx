@@ -5,7 +5,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster";
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
-import { ChefHat, ImageUp, Home, CalendarCheck, Mic, HeartPulse } from 'lucide-react'; // Added Mic icon and HeartPulse
+import { ChefHat, ImageUp, Home, CalendarCheck, Mic, HeartPulse } from 'lucide-react';
 
 
 const geistSans = Geist({
@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'FridgeRecipe',
+  title: 'CulinaryAI', // Updated Title
   description: 'Generate recipes, plan meals, and get health tips!',
 };
 
@@ -36,7 +36,7 @@ export default function RootLayout({
             <Link href="/" className="mr-6 flex items-center space-x-2">
               <ChefHat className="h-6 w-6 text-primary" />
               <span className="font-bold inline-block">
-                FridgeRecipe
+                CulinaryAI {/* Updated Name */}
               </span>
             </Link>
             {/* Consider if a dedicated nav item for voice assistant is needed, or if buttons on home are sufficient */}
@@ -102,4 +102,3 @@ export default function RootLayout({
     </html>
   );
 }
-

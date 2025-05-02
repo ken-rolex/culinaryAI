@@ -1,4 +1,4 @@
-# FridgeRecipe
+# CulinaryAI
 
 This Next.js application helps you generate recipes from ingredients, get personalized health plans, and manage your daily meals and exercises.
 
@@ -6,7 +6,9 @@ This Next.js application helps you generate recipes from ingredients, get person
 
 - **Recipe Generation**: Enter ingredients manually or upload a photo to get recipe suggestions.
 - **Health Meter**: Calculate your BMI and get a personalized diet and health plan based on your age, weight, height, and an optional photo.
-- **Diet Chat Assistant**: Chat with an AI assistant to customize your diet plan in real-time.
+- **Diet Chat Assistant**: Chat with an AI assistant (Health Coach) to customize your diet plan in real-time.
+- **Chef Chat Assistant**: Chat with an AI Chef about recipes, techniques, and more.
+- **Voice Assistant**: Talk to the Health Coach or AI Chef using voice commands.
 - **Daily Planner**: Organize your meals, exercises, and notes in a drag-and-drop daily schedule. Includes exercise recommendations based on your preferences.
 
 ## Getting Started
@@ -33,12 +35,12 @@ This Next.js application helps you generate recipes from ingredients, get person
 
 3.  **Set up Environment Variables:**
     - **Crucial Step:** Create a `.env` file in the root directory of the project.
-    - Add your Google Generative AI API key to the `.env` file. **The AI features (recipe generation, health plan, diet chat, exercise recommendations) will not work without a valid API key.**
+    - Add your Google Generative AI API key to the `.env` file. **The AI features (recipe generation, health plan, chat assistants, exercise recommendations) will not work without a valid API key.**
       ```dotenv
       # Get your API key from Google AI Studio: https://aistudio.google.com/app/apikey
       GOOGLE_GENAI_API_KEY="YOUR_API_KEY_HERE"
       ```
-    - **Important:** Replace `"YOUR_API_KEY_HERE"` with your actual API key obtained from Google AI Studio. Make sure the key is active and has the necessary permissions. If you encounter errors related to API calls (like 400 Bad Request or API key invalid), double-check this step.
+    - **Important:** Replace `"YOUR_API_KEY_HERE"` with your actual API key obtained from Google AI Studio. Make sure the key is active and has the necessary permissions. If you encounter errors related to API calls (like 400 Bad Request or API key invalid), double-check this step and ensure the development server (`npm run dev`) is restarted after adding or changing the key.
 
 4.  **Run the development server:**
     ```bash
@@ -59,12 +61,13 @@ This Next.js application helps you generate recipes from ingredients, get person
 
 ### Usage
 
-- **Home Page (`/`)**: Access main features like Manual Entry, Image Upload, and the Health Meter.
+- **Home Page (`/`)**: Access main features like Manual Entry, Image Upload, the Health Meter, and Voice Assistant triggers.
 - **Manual Entry (`/manual-entry`)**: Type in ingredients to generate a recipe.
 - **Image Upload (`/image-upload`)**: Upload a photo of ingredients to extract them and generate a recipe.
 - **Health Meter (on Home Page)**: Enter your health details to get a BMI calculation and a personalized health plan.
-- **Diet Chat (`/diet-chat`)**: Interact with the AI assistant to modify your diet plan.
+- **Coach Chat (`/diet-chat`)**: Interact with the AI Health Coach via text to modify your diet plan.
 - **Daily Planner (`/daily-planner`)**: Manage your daily schedule and get exercise recommendations.
+- **Voice Assistant (on Home Page)**: Click "Talk to Chef" or "Talk to Coach" to interact using voice.
 
 ## Technologies Used
 
@@ -78,3 +81,4 @@ This Next.js application helps you generate recipes from ingredients, get person
 - Zod (for schema validation)
 - React Hook Form
 - dnd-kit (for drag and drop)
+- Web Speech API (for voice input/output)

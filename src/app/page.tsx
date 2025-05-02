@@ -15,7 +15,7 @@ import VoiceAssistant from '@/components/voice-assistant'; // Import the new voi
 
 const Home = () => {
   const homeText = {
-    welcome: 'Welcome to FridgeRecipe!',
+    welcome: 'Welcome to CulinaryAI!', // Updated Name
     intro:
       'Turn the ingredients you already have into delicious meals, track your health, plan your days, and chat with AI assistants! Choose how you want to start:',
     manualEntry: 'Manual Ingredient Entry',
@@ -90,4 +90,3 @@ const Home = () => {
 };
 
 export default Home;
-
