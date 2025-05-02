@@ -3,17 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from './ui/separator';
-import { ListChecks, CookingPot, Info } from 'lucide-react'; // Added Info icon for fallback
+import { ListChecks, CookingPot, Info } from 'lucide-react';
 
 interface RecipeDisplayProps {
-  recipe: GenerateRecipeOutput | null | undefined; // Allow null or undefined
+  recipe: GenerateRecipeOutput | null | undefined;
 }
 
 export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
   // Handle null or undefined recipe gracefully
   if (!recipe) {
-    return ( // Opening parenthesis for return JSX
-       <Card className="shadow-lg mt-8 animate-in fade-in duration-500">
+    return (
+      <Card className="shadow-lg mt-8 animate-in fade-in duration-500">
         <CardHeader>
             <CardTitle className="text-2xl font-bold text-primary flex items-center gap-2"><Info className="h-6 w-6"/> No Recipe</CardTitle>
             <CardDescription>No recipe details available.</CardDescription>
@@ -22,16 +22,16 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
             <p className="text-sm text-muted-foreground">The recipe could not be displayed.</p>
         </CardContent>
        </Card>
-    ); // Closing parenthesis for return JSX - Added missing parenthesis
+    );
   }
-
 
   // Split ingredients and instructions safely
   const ingredientsList = recipe.ingredients ? recipe.ingredients.split(',').map(item => item.trim()).filter(item => item) : [];
   const instructionsList = recipe.instructions ? recipe.instructions.split('\n').map(item => item.trim()).filter(item => item) : [];
 
+  // Main return statement for when a recipe exists
   return (
-    <Card className="shadow-lg mt-8 animate-in fade-in duration-500 border border-secondary/50"> {/* Added subtle border */}
+    <Card className="shadow-lg mt-8 animate-in fade-in duration-500 border border-secondary/50">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-primary">{recipe.recipeName || "Unnamed Recipe"}</CardTitle>
         <CardDescription>Here's a recipe based on your ingredients!</CardDescription>
@@ -45,7 +45,7 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
           {ingredientsList.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {ingredientsList.map((ingredient, index) => (
-                <Badge key={index} variant="secondary">{ingredient}</Badge> {/* Changed variant */}
+                <Badge key={index} variant="secondary">{ingredient}</Badge>
               ))}
             </div>
           ) : (
@@ -61,11 +61,8 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
              Instructions:
           </h3>
           {instructionsList.length > 0 ? (
-            <ol className="list-decimal space-y-3 pl-6 text-foreground prose prose-sm max-w-none"> {/* Added prose styling */}
+            <ol className="list-decimal space-y-3 pl-6 text-foreground prose prose-sm max-w-none">
               {instructionsList.map((step, index) => (
-                 // Use dangerouslySetInnerHTML if instructions might contain basic markdown like bolding
-                 // Be cautious if the source is not trusted. For LLM output, basic formatting is usually safe.
-                 // <li key={index} className="pl-2" dangerouslySetInnerHTML={{ __html: step }} />
                  <li key={index} className="pl-2">{step}</li>
               ))}
             </ol>
