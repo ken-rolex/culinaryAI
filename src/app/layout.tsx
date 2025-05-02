@@ -5,7 +5,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster";
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
-import { ChefHat, ImageUp, Home } from 'lucide-react'; // Added icons
+import { ChefHat, ImageUp, Home, MessageCircle, CalendarCheck } from 'lucide-react'; // Added icons
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'FridgeRecipe',
-  description: 'Generate recipes from ingredients you have!',
+  description: 'Generate recipes, plan meals, and get health tips!',
 };
 
 export default function RootLayout({
@@ -57,6 +57,20 @@ export default function RootLayout({
                  <Link href="/image-upload" passHref legacyBehavior>
                    <MenubarTrigger className="font-bold cursor-pointer">
                      <ImageUp className="mr-2 h-4 w-4" /> Image Upload
+                   </MenubarTrigger>
+                 </Link>
+               </MenubarMenu>
+               <MenubarMenu>
+                 <Link href="/diet-chat" passHref legacyBehavior>
+                   <MenubarTrigger className="font-bold cursor-pointer">
+                     <MessageCircle className="mr-2 h-4 w-4" /> Diet Chat
+                   </MenubarTrigger>
+                 </Link>
+               </MenubarMenu>
+               <MenubarMenu>
+                 <Link href="/daily-planner" passHref legacyBehavior>
+                   <MenubarTrigger className="font-bold cursor-pointer">
+                     <CalendarCheck className="mr-2 h-4 w-4" /> Daily Planner
                    </MenubarTrigger>
                  </Link>
                </MenubarMenu>
