@@ -49,9 +49,9 @@ export default function HealthMeter() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      age: undefined,
-      weight: undefined,
-      height: undefined,
+      age: '', // Use empty string instead of undefined
+      weight: '', // Use empty string instead of undefined
+      height: '', // Use empty string instead of undefined
       image: undefined,
     },
   });
@@ -233,12 +233,13 @@ export default function HealthMeter() {
              <div className="space-y-2">
                 <FormLabel htmlFor="image-upload" className="flex items-center"><Upload className="mr-1 h-4 w-4"/>Upload Photo (Optional)</FormLabel>
                 <FormControl>
+                    {/* This input is file type, not directly controlled by react-hook-form value */}
                     <Input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} className="file:text-foreground"/>
                 </FormControl>
                  <FormDescription>
                     A photo can help provide more personalized visual feedback (max 5MB).
                  </FormDescription>
-                <FormMessage /> {/* For image-related errors */}
+                {/* Display image-related errors from useState, not form message */}
              </div>
 
              {imagePreview && (
