@@ -10,6 +10,7 @@ import { Loader2, Send, Bot, User, Edit } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { chatDietAssistant, ChatDietAssistantInput, ChatDietAssistantOutput } from '@/ai/flows/chat-diet-assistant';
 import { Textarea } from '@/components/ui/textarea'; // Use Textarea for potentially longer plan display/edit
+import { cn } from '@/lib/utils'; // Import the cn utility function
 
 // Define message structure
 interface Message {
@@ -30,7 +31,7 @@ export default function DietChatPage() {
      lifestyle: 'Moderate Activity'
   });
   const { toast } = useToast();
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollAreaViewportRef = useRef<HTMLDivElement>(null); // Ref for the viewport
 
   // Initial assistant message
   useEffect(() => {
@@ -41,8 +42,13 @@ export default function DietChatPage() {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+    if (scrollAreaViewportRef.current) {
+        // Use setTimeout to ensure scrolling happens after the DOM update
+        setTimeout(() => {
+             if (scrollAreaViewportRef.current) {
+                scrollAreaViewportRef.current.scrollTo({ top: scrollAreaViewportRef.current.scrollHeight, behavior: 'smooth' });
+             }
+        }, 0);
     }
   }, [messages]);
 
@@ -122,7 +128,7 @@ export default function DietChatPage() {
           <CardDescription>Chat to customize your diet plan based on your needs.</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 p-4 pr-2" ref={scrollAreaRef}>
+          <ScrollArea className="flex-1 p-4 pr-2" viewportRef={scrollAreaViewportRef}> {/* Pass the ref here */}
             <div className="space-y-4">
               {messages.map((message) => (
                 <div

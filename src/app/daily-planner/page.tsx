@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SortableItem } from '@/components/sortable-item'; // Needs to be created
 import { recommendExercises, RecommendExercisesInput, RecommendExercisesOutput } from '@/ai/flows/recommend-exercises';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils'; // Import the cn utility function
 
 // Define item structure
 interface PlannerItem {
@@ -57,15 +58,31 @@ export default function DailyPlannerPage() {
 
   // Load items from local storage on mount
   useEffect(() => {
+    // Ensure this runs only on the client
     const savedItems = localStorage.getItem('dailyPlannerItems');
     if (savedItems) {
-      setItems(JSON.parse(savedItems));
+        try {
+            const parsedItems = JSON.parse(savedItems);
+            // Basic validation
+            if (Array.isArray(parsedItems)) {
+                 setItems(parsedItems.sort((a: PlannerItem, b: PlannerItem) => a.time.localeCompare(b.time)));
+            } else {
+                console.warn("Invalid data found in local storage for daily planner.");
+                localStorage.removeItem('dailyPlannerItems'); // Clear invalid data
+            }
+        } catch (e) {
+            console.error("Failed to parse daily planner items from local storage:", e);
+            localStorage.removeItem('dailyPlannerItems'); // Clear corrupted data
+        }
     }
   }, []);
 
   // Save items to local storage whenever they change
   useEffect(() => {
-    localStorage.setItem('dailyPlannerItems', JSON.stringify(items));
+     // Ensure this runs only on the client
+     if (typeof window !== 'undefined') {
+        localStorage.setItem('dailyPlannerItems', JSON.stringify(items));
+     }
   }, [items]);
 
   const sensors = useSensors(
@@ -82,8 +99,13 @@ export default function DailyPlannerPage() {
       setItems((currentItems) => {
         const oldIndex = currentItems.findIndex((item) => item.id === active.id);
         const newIndex = currentItems.findIndex((item) => item.id === over.id);
-        return arrayMove(currentItems, oldIndex, newIndex);
+        // Ensure indices are valid before moving
+        if (oldIndex !== -1 && newIndex !== -1) {
+           return arrayMove(currentItems, oldIndex, newIndex);
+        }
+        return currentItems; // Return unchanged if indices invalid
       });
+       toast({ title: "Plan Reordered", description: "Item moved successfully." });
     }
   };
 
@@ -93,24 +115,26 @@ export default function DailyPlannerPage() {
       return;
     }
     const newItem: PlannerItem = {
-      id: `item-${Date.now()}`,
+      id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`, // More unique ID
       time: newItemTime,
       type: newItemType,
       title: newItemTitle,
       details: newItemDetails,
       completed: false,
     };
-    setItems(prevItems => [...prevItems, newItem].sort((a, b) => a.time.localeCompare(b.time))); // Add and sort
+    // Add and sort immediately
+    setItems(prevItems => [...prevItems, newItem].sort((a, b) => a.time.localeCompare(b.time)));
     // Reset form
     setNewItemTime('');
     setNewItemTitle('');
     setNewItemDetails('');
+    setNewItemType('meal'); // Reset type to default
     toast({ title: "Item Added", description: `${newItem.title} scheduled for ${newItem.time}.` });
   };
 
    const startEditItem = (item: PlannerItem) => {
     setEditingItem(item);
-    // Prefill state for the dialog (optional, could also pass directly)
+    // Prefill state for the dialog
     setNewItemTime(item.time);
     setNewItemType(item.type);
     setNewItemTitle(item.title);
@@ -130,51 +154,79 @@ export default function DailyPlannerPage() {
             : item
         ).sort((a, b) => a.time.localeCompare(b.time)) // Re-sort after edit
     );
-    setEditingItem(null); // Close dialog implicitly by resetting state
-    // Reset form fields
+    setEditingItem(null); // Close dialog by resetting editing state
+    // Reset form fields after saving edit
     setNewItemTime('');
     setNewItemTitle('');
     setNewItemDetails('');
-     toast({ title: "Item Updated", description: `${newItemTitle} details saved.` });
+    setNewItemType('meal'); // Reset type to default
+    toast({ title: "Item Updated", description: `${newItemTitle} details saved.` });
   };
 
 
   const deleteItem = (id: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== id));
-    toast({ variant:"destructive", title: "Item Deleted" });
+     setItems(prevItems => {
+         const itemToDelete = prevItems.find(item => item.id === id);
+         const updatedItems = prevItems.filter(item => item.id !== id);
+          toast({
+             variant:"destructive",
+             title: "Item Deleted",
+             description: itemToDelete ? `${itemToDelete.title} removed from your plan.` : undefined
+            });
+         return updatedItems;
+     });
   };
 
   const toggleComplete = (id: string) => {
+     let itemTitle = '';
+     let isCompleted = false;
     setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-      )
+      prevItems.map(item => {
+        if (item.id === id) {
+            itemTitle = item.title;
+            isCompleted = !item.completed;
+            return { ...item, completed: isCompleted };
+        }
+        return item;
+      })
     );
+     toast({ title: "Status Updated", description: `${itemTitle} marked as ${isCompleted ? 'complete' : 'incomplete'}.` });
   };
 
   const handleGenerateExercises = async () => {
      setIsGeneratingExercises(true);
     try {
         const input: RecommendExercisesInput = {
-            ...exercisePreferences
+            ...exercisePreferences,
+             // Ensure arrays are not empty before sending
+             preferences: exercisePreferences.preferences.filter(p => p.trim()),
+             goals: exercisePreferences.goals.filter(g => g.trim())
         };
+
+         if (input.preferences.length === 0 || input.goals.length === 0) {
+            toast({ variant: "destructive", title: "Missing Preferences", description: "Please specify at least one preference and goal." });
+            setIsGeneratingExercises(false);
+            return;
+        }
+
+
         const result: RecommendExercisesOutput = await recommendExercises(input);
 
-        if (result.suggestedRoutine.length > 0) {
+        if (result.suggestedRoutine && result.suggestedRoutine.length > 0) {
             // Add recommended exercises to the planner
             const exerciseItems: PlannerItem[] = result.suggestedRoutine.map((ex, index) => ({
-                id: `ex-${Date.now()}-${index}`,
+                id: `ex-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 7)}`, // More unique ID
                 time: "18:00", // Default time, user can adjust
                 type: 'exercise',
-                title: ex.name,
-                details: `${ex.description}\n${ex.sets ? `Sets: ${ex.sets}` : ''} ${ex.reps ? `Reps: ${ex.reps}` : ''} ${ex.duration ? `Duration: ${ex.duration}` : ''}\nCategory: ${ex.category || 'General'}`,
+                title: ex.name || 'Unnamed Exercise', // Fallback title
+                details: `${ex.description || 'No description.'}\n${ex.sets ? `Sets: ${ex.sets}` : ''} ${ex.reps ? `Reps: ${ex.reps}` : ''} ${ex.duration ? `Duration: ${ex.duration}` : ''}\nCategory: ${ex.category || 'General'}`,
                 completed: false,
             }));
 
              // Add notes as a planner item if present
              if (result.notes) {
                  exerciseItems.push({
-                     id: `ex-note-${Date.now()}`,
+                     id: `ex-note-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`, // More unique ID
                      time: "17:50", // Time before workout maybe
                      type: 'note',
                      title: 'Workout Notes',
@@ -202,9 +254,9 @@ export default function DailyPlannerPage() {
 
   const getItemIcon = (type: PlannerItem['type']) => {
     switch (type) {
-      case 'meal': return <Utensils className="h-4 w-4 text-blue-500" />;
-      case 'exercise': return <Dumbbell className="h-4 w-4 text-green-500" />;
-      case 'note': return <Edit className="h-4 w-4 text-gray-500" />;
+      case 'meal': return <Utensils className="h-4 w-4 text-primary" />; // Use primary color for Meal
+      case 'exercise': return <Dumbbell className="h-4 w-4 text-accent" />; // Use accent color for Exercise
+      case 'note': return <Edit className="h-4 w-4 text-muted-foreground" />; // Use muted for Note
       default: return <Clock className="h-4 w-4" />;
     }
   };
@@ -214,105 +266,149 @@ export default function DailyPlannerPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Your Daily Diet & Exercise Planner</CardTitle>
-          <CardDescription>Organize your meals, workouts, and notes. Drag to reorder.</CardDescription>
+          <CardDescription>Organize your meals, workouts, and notes. Drag items to reorder them.</CardDescription>
         </CardHeader>
         <CardContent>
            {/* Add New Item Form */}
-           <Card className="mb-6 bg-muted/50 p-4">
-                <h3 className="text-lg font-semibold mb-3">Add New Plan Item</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-                    <div className="space-y-1">
-                        <label htmlFor="newTime" className="text-sm font-medium">Time</label>
-                        <Input id="newTime" type="time" value={newItemTime} onChange={(e) => setNewItemTime(e.target.value)} required />
-                    </div>
-                     <div className="space-y-1">
-                        <label htmlFor="newType" className="text-sm font-medium">Type</label>
-                         <Select value={newItemType} onValueChange={(value: PlannerItem['type']) => setNewItemType(value)}>
-                            <SelectTrigger id="newType">
-                                <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="meal">Meal</SelectItem>
-                                <SelectItem value="exercise">Exercise</SelectItem>
-                                <SelectItem value="note">Note</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-1 sm:col-span-2 md:col-span-1">
-                        <label htmlFor="newTitle" className="text-sm font-medium">Title / Name</label>
-                        <Input id="newTitle" type="text" placeholder={newItemType === 'meal' ? "e.g., Breakfast" : "e.g., Morning Run"} value={newItemTitle} onChange={(e) => setNewItemTitle(e.target.value)} required />
-                    </div>
-                     <div className="sm:col-span-2 md:col-span-4 space-y-1">
-                         <label htmlFor="newDetails" className="text-sm font-medium">Details (Optional)</label>
-                        <Textarea id="newDetails" placeholder={newItemType === 'meal' ? "e.g., Oatmeal with berries" : "e.g., 3 miles, moderate pace"} value={newItemDetails} onChange={(e) => setNewItemDetails(e.target.value)} rows={2} />
-                    </div>
-                    <div className="sm:col-span-2 md:col-span-4">
-                        <Button onClick={addItem} className="w-full md:w-auto">
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add to Plan
-                        </Button>
-                         {/* Exercise Recommendation Button */}
-                        <Dialog open={isExerciseDialogOpen} onOpenChange={setIsExerciseDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" className="w-full md:w-auto ml-0 mt-2 md:mt-0 md:ml-2">
-                                    <Dumbbell className="mr-2 h-4 w-4" /> Recommend Exercises
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                <DialogTitle>Exercise Preferences</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4 py-4">
-                                    {/* Form to collect preferences */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                             <label htmlFor="pref-type" className="text-sm font-medium">Preferences (comma-sep)</label>
-                                             <Input id="pref-type" value={exercisePreferences.preferences.join(', ')} onChange={(e) => setExercisePreferences({...exercisePreferences, preferences: e.target.value.split(',').map(s=>s.trim()).filter(Boolean)})}/>
-                                        </div>
-                                         <div>
-                                             <label htmlFor="pref-goals" className="text-sm font-medium">Goals (comma-sep)</label>
-                                             <Input id="pref-goals" value={exercisePreferences.goals.join(', ')} onChange={(e) => setExercisePreferences({...exercisePreferences, goals: e.target.value.split(',').map(s=>s.trim()).filter(Boolean)})}/>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label htmlFor="pref-level" className="text-sm font-medium">Fitness Level</label>
-                                            <Select value={exercisePreferences.fitnessLevel} onValueChange={(v: ExercisePreferences['fitnessLevel']) => setExercisePreferences({...exercisePreferences, fitnessLevel: v})}>
-                                                <SelectTrigger id="pref-level"><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Beginner">Beginner</SelectItem>
-                                                    <SelectItem value="Intermediate">Intermediate</SelectItem>
-                                                    <SelectItem value="Advanced">Advanced</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div>
-                                             <label htmlFor="pref-time" className="text-sm font-medium">Available Time</label>
-                                             <Input id="pref-time" value={exercisePreferences.availableTime} onChange={(e) => setExercisePreferences({...exercisePreferences, availableTime: e.target.value})}/>
-                                        </div>
-                                    </div>
-                                      <div>
-                                            <label htmlFor="pref-loc" className="text-sm font-medium">Location</label>
-                                            <Select value={exercisePreferences.location} onValueChange={(v: ExercisePreferences['location']) => setExercisePreferences({...exercisePreferences, location: v})}>
-                                                <SelectTrigger id="pref-loc"><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Home">Home</SelectItem>
-                                                    <SelectItem value="Gym">Gym</SelectItem>
-                                                    <SelectItem value="Outdoors">Outdoors</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                </div>
-                                <DialogFooter>
-                                    <Button onClick={handleGenerateExercises} disabled={isGeneratingExercises}>
-                                        {isGeneratingExercises ? <Loader2 className="h-4 w-4 animate-spin mr-2"/> : <Dumbbell className="mr-2 h-4 w-4" />}
-                                        Get Recommendations
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
+           <Card className="mb-6 bg-muted/50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-4">Add New Plan Item</h3>
+                 {/* Using Dialog for Add/Edit Form */}
+                <Dialog open={editingItem !== null} onOpenChange={(isOpen) => { if (!isOpen) setEditingItem(null); }}>
+                    {/* Trigger is handled by the button below */}
+                     <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{editingItem ? 'Edit Plan Item' : 'Add New Plan Item'}</DialogTitle>
+                        </DialogHeader>
+                        {/* Re-use form fields for editing - This content needs to be inside the Dialog */}
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <label htmlFor="itemTime" className="text-right">Time</label>
+                                <Input id="itemTime" type="time" value={newItemTime} onChange={(e) => setNewItemTime(e.target.value)} className="col-span-3" required />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <label htmlFor="itemType" className="text-right">Type</label>
+                                <Select value={newItemType} onValueChange={(value: PlannerItem['type']) => setNewItemType(value)}>
+                                    <SelectTrigger id="itemType" className="col-span-3"> <SelectValue /> </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="meal">Meal</SelectItem>
+                                        <SelectItem value="exercise">Exercise</SelectItem>
+                                        <SelectItem value="note">Note</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <label htmlFor="itemTitle" className="text-right">Title</label>
+                                <Input id="itemTitle" value={newItemTitle} onChange={(e) => setNewItemTitle(e.target.value)} className="col-span-3" required placeholder={newItemType === 'meal' ? "e.g., Breakfast" : "e.g., Morning Run"} />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <label htmlFor="itemDetails" className="text-right">Details</label>
+                                <Textarea id="itemDetails" value={newItemDetails} onChange={(e) => setNewItemDetails(e.target.value)} className="col-span-3" rows={3} placeholder={newItemType === 'meal' ? "e.g., Oatmeal with berries" : "e.g., 3 miles, moderate pace"}/>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setEditingItem(null)}>Cancel</Button>
+                            <Button type="button" onClick={saveEditItem}>Save Changes</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
+
+                {/* Display Form outside dialog for adding new items */}
+                 {!editingItem && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                        <div className="space-y-1">
+                            <label htmlFor="newTime" className="text-sm font-medium">Time</label>
+                            <Input id="newTime" type="time" value={newItemTime} onChange={(e) => setNewItemTime(e.target.value)} required />
+                        </div>
+                        <div className="space-y-1">
+                            <label htmlFor="newType" className="text-sm font-medium">Type</label>
+                            <Select value={newItemType} onValueChange={(value: PlannerItem['type']) => setNewItemType(value)}>
+                                <SelectTrigger id="newType">
+                                    <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="meal">Meal</SelectItem>
+                                    <SelectItem value="exercise">Exercise</SelectItem>
+                                    <SelectItem value="note">Note</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1 sm:col-span-2 md:col-span-1">
+                            <label htmlFor="newTitle" className="text-sm font-medium">Title / Name</label>
+                            <Input id="newTitle" type="text" placeholder={newItemType === 'meal' ? "e.g., Breakfast" : "e.g., Morning Run"} value={newItemTitle} onChange={(e) => setNewItemTitle(e.target.value)} required />
+                        </div>
+                        <div className="sm:col-span-2 md:col-span-4 space-y-1">
+                            <label htmlFor="newDetails" className="text-sm font-medium">Details (Optional)</label>
+                            <Textarea id="newDetails" placeholder={newItemType === 'meal' ? "e.g., Oatmeal with berries" : "e.g., 3 miles, moderate pace"} value={newItemDetails} onChange={(e) => setNewItemDetails(e.target.value)} rows={2} />
+                        </div>
+                        <div className="sm:col-span-2 md:col-span-4 flex flex-wrap gap-2">
+                            <Button onClick={addItem} className="flex-grow sm:flex-grow-0">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add to Plan
+                            </Button>
+                            {/* Exercise Recommendation Button */}
+                            <Dialog open={isExerciseDialogOpen} onOpenChange={setIsExerciseDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" className="flex-grow sm:flex-grow-0">
+                                        <Dumbbell className="mr-2 h-4 w-4" /> Recommend Exercises
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                    <DialogTitle>Exercise Preferences</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                        {/* Form to collect preferences */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label htmlFor="pref-type" className="text-sm font-medium block mb-1">Preferences (comma-sep)</label>
+                                                <Input id="pref-type" placeholder="e.g., Yoga, Cardio" value={exercisePreferences.preferences.join(', ')} onChange={(e) => setExercisePreferences({...exercisePreferences, preferences: e.target.value.split(',').map(s=>s.trim()).filter(Boolean)})}/>
+                                            </div>
+                                            <div>
+                                                <label htmlFor="pref-goals" className="text-sm font-medium block mb-1">Goals (comma-sep)</label>
+                                                <Input id="pref-goals" placeholder="e.g., Weight Loss, Flexibility" value={exercisePreferences.goals.join(', ')} onChange={(e) => setExercisePreferences({...exercisePreferences, goals: e.target.value.split(',').map(s=>s.trim()).filter(Boolean)})}/>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                             <div>
+                                                <label htmlFor="pref-level" className="text-sm font-medium block mb-1">Fitness Level</label>
+                                                <Select value={exercisePreferences.fitnessLevel} onValueChange={(v: ExercisePreferences['fitnessLevel']) => setExercisePreferences({...exercisePreferences, fitnessLevel: v})}>
+                                                    <SelectTrigger id="pref-level"><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Beginner">Beginner</SelectItem>
+                                                        <SelectItem value="Intermediate">Intermediate</SelectItem>
+                                                        <SelectItem value="Advanced">Advanced</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <label htmlFor="pref-time" className="text-sm font-medium block mb-1">Available Time</label>
+                                                <Input id="pref-time" placeholder="e.g., 30 minutes" value={exercisePreferences.availableTime} onChange={(e) => setExercisePreferences({...exercisePreferences, availableTime: e.target.value})}/>
+                                            </div>
+                                             <div>
+                                                <label htmlFor="pref-loc" className="text-sm font-medium block mb-1">Location</label>
+                                                <Select value={exercisePreferences.location} onValueChange={(v: ExercisePreferences['location']) => setExercisePreferences({...exercisePreferences, location: v})}>
+                                                    <SelectTrigger id="pref-loc"><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="Home">Home</SelectItem>
+                                                        <SelectItem value="Gym">Gym</SelectItem>
+                                                        <SelectItem value="Outdoors">Outdoors</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                         <Button variant="outline" onClick={() => setIsExerciseDialogOpen(false)}>Cancel</Button>
+                                        <Button onClick={handleGenerateExercises} disabled={isGeneratingExercises}>
+                                            {isGeneratingExercises ? <Loader2 className="h-4 w-4 animate-spin mr-2"/> : <Dumbbell className="mr-2 h-4 w-4" />}
+                                            Get Recommendations
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                     </div>
-                </div>
+                 )}
             </Card>
 
 
@@ -323,70 +419,35 @@ export default function DailyPlannerPage() {
                   <div className="space-y-2">
                     {items.map(item => (
                       <SortableItem key={item.id} id={item.id}>
-                         <Card className={cn("flex items-center p-3 transition-colors hover:bg-muted/80", item.completed && "bg-muted/30 opacity-70")}>
+                         <Card className={cn("flex items-center p-3 transition-shadow hover:shadow-md", item.completed ? "bg-muted/50 opacity-70" : "bg-card")}>
                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                             <span className="cursor-grab touch-none text-muted-foreground hover:text-foreground"><GripVertical size={16} /></span>
+                             {/* Grip Handle - Make it easier to grab */}
+                             <span
+                                className="cursor-grab touch-none p-1 -ml-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+                                aria-label="Drag to reorder"
+                                >
+                                 <GripVertical size={16} />
+                             </span>
                              <Checkbox
                                id={`complete-${item.id}`}
                                checked={item.completed}
                                onCheckedChange={() => toggleComplete(item.id)}
-                               aria-label={`Mark ${item.title} as complete`}
+                               aria-label={`Mark ${item.title} as ${item.completed ? 'incomplete' : 'complete'}`}
+                               className="flex-shrink-0"
                              />
-                              <Badge variant="outline" className="whitespace-nowrap">{item.time}</Badge>
+                              <Badge variant="outline" className="whitespace-nowrap flex-shrink-0">{item.time}</Badge>
                                {getItemIcon(item.type)}
-                             <div className="flex-1 min-w-0">
-                               <p className={cn("font-medium truncate", item.completed && "line-through")}>{item.title}</p>
+                             <div className="flex-1 min-w-0 ml-1">
+                               <p className={cn("font-medium truncate", item.completed && "line-through text-muted-foreground")}>{item.title}</p>
                                {item.details && <p className={cn("text-xs text-muted-foreground truncate", item.completed && "line-through")}>{item.details}</p>}
                              </div>
                            </div>
-                           <div className="ml-auto flex gap-2 pl-2">
-                                {/* Edit Button using Dialog */}
-                                <Dialog open={editingItem?.id === item.id} onOpenChange={(isOpen) => !isOpen && setEditingItem(null)}>
-                                    <DialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEditItem(item)}>
-                                            <Edit size={14} />
-                                            <span className="sr-only">Edit Item</span>
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Edit Plan Item</DialogTitle>
-                                        </DialogHeader>
-                                        <div className="grid gap-4 py-4">
-                                             {/* Re-use form fields for editing */}
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <label htmlFor="editTime" className="text-right">Time</label>
-                                                <Input id="editTime" type="time" value={newItemTime} onChange={(e) => setNewItemTime(e.target.value)} className="col-span-3" required />
-                                            </div>
-                                             <div className="grid grid-cols-4 items-center gap-4">
-                                                <label htmlFor="editType" className="text-right">Type</label>
-                                                <Select value={newItemType} onValueChange={(value: PlannerItem['type']) => setNewItemType(value)}>
-                                                    <SelectTrigger id="editType" className="col-span-3"> <SelectValue /> </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="meal">Meal</SelectItem>
-                                                        <SelectItem value="exercise">Exercise</SelectItem>
-                                                        <SelectItem value="note">Note</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <label htmlFor="editTitle" className="text-right">Title</label>
-                                                <Input id="editTitle" value={newItemTitle} onChange={(e) => setNewItemTitle(e.target.value)} className="col-span-3" required />
-                                            </div>
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <label htmlFor="editDetails" className="text-right">Details</label>
-                                                <Textarea id="editDetails" value={newItemDetails} onChange={(e) => setNewItemDetails(e.target.value)} className="col-span-3" rows={3} />
-                                            </div>
-                                        </div>
-                                        <DialogFooter>
-                                            {/* <DialogClose asChild> */}
-                                                <Button type="button" onClick={saveEditItem}>Save Changes</Button>
-                                            {/* </DialogClose> */}
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
-
-
+                           <div className="ml-auto flex gap-1 pl-2 flex-shrink-0">
+                                {/* Edit Button - Triggers the Dialog */}
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEditItem(item)}>
+                                    <Edit size={14} />
+                                    <span className="sr-only">Edit Item</span>
+                                </Button>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => deleteItem(item.id)}>
                                     <Trash2 size={14} />
                                     <span className="sr-only">Delete Item</span>
@@ -399,8 +460,9 @@ export default function DailyPlannerPage() {
                 </SortableContext>
               </DndContext>
           ) : (
-             <div className="text-center text-muted-foreground py-10">
-                <p>Your planner is empty. Add some items above or get exercise recommendations!</p>
+             <div className="text-center text-muted-foreground py-10 border border-dashed rounded-lg">
+                <p className="mb-2">Your planner is empty.</p>
+                 <p className="text-sm">Add items using the form above or get exercise recommendations!</p>
              </div>
           )}
 
@@ -410,4 +472,3 @@ export default function DailyPlannerPage() {
     </div>
   );
 }
-
