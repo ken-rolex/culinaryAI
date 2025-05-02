@@ -5,7 +5,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster";
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
-import { ChefHat, ImageUp, Home, MessageCircle, CalendarCheck } from 'lucide-react'; // Added icons
+import { ChefHat, ImageUp, Home, MessageCircle, CalendarCheck, Mic } from 'lucide-react'; // Added Mic icon
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -38,6 +38,7 @@ export default function RootLayout({
                 FridgeRecipe
               </span>
             </Link>
+            {/* Consider if a dedicated nav item for voice assistant is needed, or if buttons on home are sufficient */}
             <Menubar className="border-none bg-transparent shadow-none rounded-none">
                <MenubarMenu>
                  <Link href="/" passHref legacyBehavior>
@@ -63,7 +64,8 @@ export default function RootLayout({
                <MenubarMenu>
                  <Link href="/diet-chat" passHref legacyBehavior>
                    <MenubarTrigger className="font-bold cursor-pointer">
-                     <MessageCircle className="mr-2 h-4 w-4" /> Diet Chat
+                     {/* Changed Icon to reflect it's the Coach Chat */}
+                     <HeartPulse className="mr-2 h-4 w-4" /> Coach Chat
                    </MenubarTrigger>
                  </Link>
                </MenubarMenu>
@@ -74,6 +76,13 @@ export default function RootLayout({
                    </MenubarTrigger>
                  </Link>
                </MenubarMenu>
+               {/* Example: Add a non-clickable trigger just indicating voice feature is available */}
+               {/* <MenubarMenu>
+                    <MenubarTrigger className="font-bold cursor-pointer opacity-70">
+                        <Mic className="mr-2 h-4 w-4" /> Voice Assistant
+                        <span className="text-xs ml-1">(On Home)</span>
+                    </MenubarTrigger>
+               </MenubarMenu> */}
             </Menubar>
           </div>
         </header>

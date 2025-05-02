@@ -10,13 +10,14 @@ import {
 } from '@/components/ui/card';
 import { ChefHat, ImageUp } from 'lucide-react';
 import Link from 'next/link';
-import HealthMeter from '@/components/health-meter'; // Import the new component
+import HealthMeter from '@/components/health-meter'; // Import the health meter component
+import VoiceAssistant from '@/components/voice-assistant'; // Import the new voice assistant component
 
 const Home = () => {
   const homeText = {
     welcome: 'Welcome to FridgeRecipe!',
     intro:
-      'Turn the ingredients you already have into delicious meals. Choose how you want to start:',
+      'Turn the ingredients you already have into delicious meals, track your health, plan your days, and chat with AI assistants! Choose how you want to start:',
     manualEntry: 'Manual Ingredient Entry',
     typeIngredients: 'Type in the ingredients you have on hand.',
     startTyping: 'Start Typing',
@@ -31,12 +32,15 @@ const Home = () => {
         <h1 className="text-4xl font-bold text-center">
           {homeText.welcome}
         </h1>
-        <p className="text-lg text-muted-foreground text-center max-w-xl">
+        <p className="text-lg text-muted-foreground text-center max-w-2xl"> {/* Increased max-width */}
           {homeText.intro}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+      {/* Voice Assistant Buttons */}
+      <VoiceAssistant />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl"> {/* Increased max-width */}
         {/* Manual Entry */}
         <Card className="shadow-md hover:shadow-lg transition-shadow">
           <CardHeader>
@@ -77,7 +81,9 @@ const Home = () => {
       </div>
 
       {/* Health Meter Section */}
-      <HealthMeter />
+      <div className="w-full max-w-4xl"> {/* Ensure health meter takes full width */}
+        <HealthMeter />
+      </div>
 
     </div>
   );

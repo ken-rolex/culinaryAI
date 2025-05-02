@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Send, Bot, User, Edit } from 'lucide-react';
+import { Loader2, Send, Bot, User, Edit, HeartPulse } from 'lucide-react'; // Use HeartPulse for Coach
 import { useToast } from "@/hooks/use-toast";
 import { chatDietAssistant, ChatDietAssistantInput, ChatDietAssistantOutput } from '@/ai/flows/chat-diet-assistant';
 import { Textarea } from '@/components/ui/textarea'; // Use Textarea for potentially longer plan display/edit
@@ -37,7 +37,7 @@ export default function DietChatPage() {
   // Initial assistant message
   useEffect(() => {
     setMessages([
-      { id: 'init', role: 'assistant', content: "Hello! I'm your diet assistant. How can I help you customize your meal plan today? Tell me about your goals or preferences!" }
+      { id: 'init', role: 'assistant', content: "Hello! I'm your AI Health Coach. How can I help you customize your meal plan or fitness goals today?" }
     ]);
   }, []);
 
@@ -139,9 +139,9 @@ export default function DietChatPage() {
       <Card className="flex-1 flex flex-col shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Bot className="h-6 w-6 text-primary" /> Diet Plan Chat Assistant
+            <HeartPulse className="h-6 w-6 text-primary" /> {/* Coach Icon */} Health Coach Chat {/* Updated Title */}
           </CardTitle>
-          <CardDescription>Chat to customize your diet plan based on your needs.</CardDescription>
+          <CardDescription>Chat to customize your diet and fitness plan.</CardDescription> {/* Updated Description */}
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0">
           <ScrollArea className="flex-1 p-4 pr-2" viewportRef={scrollAreaViewportRef}> {/* Pass the ref here */}
@@ -161,7 +161,7 @@ export default function DietChatPage() {
                   )}
                   <div
                     className={cn(
-                      "rounded-lg px-4 py-2 max-w-[75%] text-sm whitespace-pre-wrap", // Added whitespace-pre-wrap
+                      "rounded-lg px-4 py-2 max-w-[75%] text-sm whitespace-pre-wrap shadow-sm", // Added shadow-sm
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
@@ -192,7 +192,7 @@ export default function DietChatPage() {
             <form onSubmit={handleSendMessage} className="flex items-center gap-2">
               <Input
                 type="text"
-                placeholder="Ask to change meals, timings, or preferences..."
+                placeholder="Ask about diet changes, fitness goals..." // Updated placeholder
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 disabled={isLoading}
