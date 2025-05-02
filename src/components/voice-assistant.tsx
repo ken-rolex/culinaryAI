@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -123,7 +122,7 @@ export default function VoiceAssistant() {
     // Initialize conversation on component mount or when type changes
     initializeAssistant(assistantType);
 
-  }, [assistantType]); // Re-initialize if assistantType changes
+  }, [assistantType, toast]); // Re-initialize if assistantType changes
 
    // Request microphone permission
    useEffect(() => {
@@ -154,7 +153,7 @@ export default function VoiceAssistant() {
        if (isOpen && hasMicPermission === null) {
           getMicPermission();
        }
-   }, [isOpen, hasMicPermission]); // Depend on isOpen and permission status
+   }, [isOpen, hasMicPermission, toast]); // Depend on isOpen and permission status
 
 
   // Scroll to bottom of chat
@@ -450,3 +449,4 @@ export default function VoiceAssistant() {
     </>
   );
 }
+
