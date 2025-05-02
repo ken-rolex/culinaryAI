@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
-const plugin = require('tailwindcss/plugin');
+const animate = require('tailwindcss-animate'); // Explicit import
+const typography = require('@tailwindcss/typography'); // Explicit import
 
 export default {
     darkMode: ["class"],
@@ -175,7 +176,7 @@ export default {
   	}
   },
   plugins: [
-    require("tailwindcss-animate"),
-    require('@tailwindcss/typography'), // Add typography plugin
+    animate, // Use imported variable
+    typography, // Use imported variable
     ],
 } satisfies Config;
