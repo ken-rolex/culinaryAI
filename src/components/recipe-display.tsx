@@ -12,7 +12,7 @@ interface RecipeDisplayProps {
 export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
   // Handle null or undefined recipe gracefully
   if (!recipe) {
-    return (
+    return ( // Opening parenthesis for return JSX
        <Card className="shadow-lg mt-8 animate-in fade-in duration-500">
         <CardHeader>
             <CardTitle className="text-2xl font-bold text-primary flex items-center gap-2"><Info className="h-6 w-6"/> No Recipe</CardTitle>
@@ -22,7 +22,7 @@ export function RecipeDisplay({ recipe }: RecipeDisplayProps) {
             <p className="text-sm text-muted-foreground">The recipe could not be displayed.</p>
         </CardContent>
        </Card>
-    );
+    ); // Closing parenthesis for return JSX - Added missing parenthesis
   }
 
 
