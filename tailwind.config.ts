@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+const plugin = require('tailwindcss/plugin');
 
 export default {
     darkMode: ["class"],
@@ -87,8 +88,94 @@ export default {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
+  		},
+        // Configure typography styles using HSL variables from the theme
+        typography: (theme: any) => ({
+            DEFAULT: {
+              css: {
+                '--tw-prose-body': 'hsl(var(--foreground))',
+                '--tw-prose-headings': 'hsl(var(--primary))',
+                '--tw-prose-lead': 'hsl(var(--foreground))',
+                '--tw-prose-links': 'hsl(var(--primary))',
+                '--tw-prose-bold': 'hsl(var(--foreground))', // Use foreground for bold
+                '--tw-prose-counters': 'hsl(var(--muted-foreground))',
+                '--tw-prose-bullets': 'hsl(var(--muted-foreground))',
+                '--tw-prose-hr': 'hsl(var(--border))',
+                '--tw-prose-quotes': 'hsl(var(--foreground))',
+                '--tw-prose-quote-borders': 'hsl(var(--border))',
+                '--tw-prose-captions': 'hsl(var(--muted-foreground))',
+                '--tw-prose-code': 'hsl(var(--foreground))', // Code color
+                '--tw-prose-pre-code': 'hsl(var(--foreground))', // Code block text color
+                '--tw-prose-pre-bg': 'hsl(var(--muted))', // Code block background
+                '--tw-prose-th-borders': 'hsl(var(--border))',
+                '--tw-prose-td-borders': 'hsl(var(--border))',
+
+                // Dark mode handled by CSS variables, but you could define specific dark prose if needed
+                 '--tw-prose-invert-body': 'hsl(var(--foreground))', // Already handled by body dark mode
+                 '--tw-prose-invert-headings': 'hsl(var(--primary))', // Already handled by body dark mode
+                 '--tw-prose-invert-links': 'hsl(var(--primary))', // Already handled by body dark mode
+                 '--tw-prose-invert-bold': 'hsl(var(--foreground))',
+                 '--tw-prose-invert-bullets': 'hsl(var(--muted-foreground))',
+                 '--tw-prose-invert-hr': 'hsl(var(--border))',
+                 '--tw-prose-invert-quotes': 'hsl(var(--foreground))',
+                 '--tw-prose-invert-quote-borders': 'hsl(var(--border))',
+                 '--tw-prose-invert-pre-bg': 'hsl(var(--muted))', // Use dark muted for code blocks
+
+                // Customizations: Adjust list spacing, paragraph margins etc.
+                ul: {
+                  paddingLeft: theme('spacing.5'),
+                  marginTop: theme('spacing.2'), // Add some top margin to lists
+                  marginBottom: theme('spacing.2'), // Add some bottom margin to lists
+                 },
+                ol: {
+                  paddingLeft: theme('spacing.5'),
+                   marginTop: theme('spacing.2'),
+                   marginBottom: theme('spacing.2'),
+                 },
+                li: {
+                  marginTop: theme('spacing.1'),
+                  marginBottom: theme('spacing.1'),
+                 },
+                 p: {
+                    marginTop: '0.5em', // Slightly reduced paragraph spacing within prose
+                    marginBottom: '0.5em',
+                 },
+                 h1: { color: 'hsl(var(--primary))' }, // Ensure headings use primary color
+                 h2: { color: 'hsl(var(--primary))' },
+                 h3: { color: 'hsl(var(--primary))' },
+                 h4: { color: 'hsl(var(--primary))', fontSize: '1.1em' }, // Example: make h4 slightly bigger
+                 strong: { color: 'hsl(var(--foreground))' }, // Ensure bold uses foreground
+                 a: {
+                    color: 'hsl(var(--accent))', // Use accent for links
+                    '&:hover': {
+                      color: 'hsl(var(--accent-foreground))', // Optional: change link hover color
+                      textDecoration: 'underline',
+                    },
+                  },
+                  // Style code blocks
+                  pre: {
+                    backgroundColor: 'hsl(var(--muted) / 0.6)', // Slightly transparent muted background
+                    borderRadius: theme('borderRadius.md'),
+                    padding: theme('spacing.4'),
+                    color: 'hsl(var(--foreground))', // Use foreground for code text
+                    border: `1px solid hsl(var(--border))`, // Add subtle border
+                  },
+                  code: {
+                      backgroundColor: 'hsl(var(--muted) / 0.5)', // Inline code background
+                      padding: '0.2em 0.4em',
+                      borderRadius: theme('borderRadius.sm'),
+                      fontSize: '90%', // Slightly smaller inline code
+                      color: 'hsl(var(--accent-foreground))', // Use accent foreground for inline code
+                      '&::before': { content: '""' }, // Remove backticks
+                      '&::after': { content: '""' }, // Remove backticks
+                  },
+              },
+            },
+          }),
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require('@tailwindcss/typography'), // Add typography plugin
+    ],
 } satisfies Config;
