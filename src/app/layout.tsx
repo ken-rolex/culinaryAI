@@ -5,7 +5,8 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster";
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
-import { ChefHat, ImageUp, Home, MessageCircle, CalendarCheck, Mic } from 'lucide-react'; // Added Mic icon
+import { ChefHat, ImageUp, Home, MessageCircle, CalendarCheck, Mic, HeartPulse } from 'lucide-react'; // Added Mic icon and HeartPulse
+
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
