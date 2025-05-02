@@ -250,10 +250,10 @@ export default function DailyPlannerPage() {
         let errorTitle = "Generation Failed";
         if (err instanceof Error) {
             errorMsg = err.message;
-            // Check if the error message indicates an API key issue (common with 400 Bad Request)
-            if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+            // Check for specific API key error messages
+            if (errorMsg.includes('API key not valid') || errorMsg.includes('400 Bad Request') || errorMsg.includes('API_KEY_INVALID')) {
                 errorTitle = "API Key Error";
-                errorMsg = "Could not fetch recommendations. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+                errorMsg = "Exercise recommendation failed. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file, is valid, and the server has been restarted after changes.";
             } else {
                  errorMsg = `Could not fetch exercise recommendations: ${errorMsg}.`;
             }

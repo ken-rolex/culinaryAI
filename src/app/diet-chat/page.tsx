@@ -102,11 +102,15 @@ export default function DietChatPage() {
       console.error('Error calling chat assistant:', err);
       let errorMsg = 'An unknown error occurred.';
       let errorTitle = "Chat Error";
+      let assistantErrorMsg = "I encountered an error. Please try again."; // Default chat error message
+
       if (err instanceof Error) {
           errorMsg = err.message;
-           if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+           // Check for specific API key error messages
+           if (errorMsg.includes('API key not valid') || errorMsg.includes('400 Bad Request') || errorMsg.includes('API_KEY_INVALID')) {
               errorTitle = "API Key Error";
-              errorMsg = "Could not get a response. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+              errorMsg = "Chat failed. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file, is valid, and the server has been restarted after changes.";
+              assistantErrorMsg = "Sorry, I can't respond right now due to an API key issue. Please check the setup."; // Specific chat error message
            } else {
                errorMsg = `Sorry, I couldn't get a response: ${errorMsg}. Please try again.`;
            }
@@ -116,11 +120,11 @@ export default function DietChatPage() {
         title: errorTitle,
         description: errorMsg, // Use refined message
       });
-      // Optionally add an error message to the chat
+      // Add an error message to the chat
        const errorAssistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I encountered an error. Please ensure your API key is valid and try again.` // Simplified error message in chat
+        content: assistantErrorMsg // Use specific or default error message for chat UI
       };
        setMessages(prev => [...prev, errorAssistantMessage]);
 

@@ -49,9 +49,9 @@ export default function HealthMeter() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      age: '', // Use empty string instead of undefined
-      weight: '', // Use empty string instead of undefined
-      height: '', // Use empty string instead of undefined
+      age: undefined, // Initialize numeric fields properly
+      weight: undefined,
+      height: undefined,
       image: undefined,
     },
   });
@@ -157,9 +157,10 @@ export default function HealthMeter() {
       let errorTitle = "Plan Generation Failed";
        if (err instanceof Error) {
           errorMsg = err.message;
-           if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+           // Check for specific API key error messages
+           if (errorMsg.includes('API key not valid') || errorMsg.includes('400 Bad Request') || errorMsg.includes('API_KEY_INVALID')) {
               errorTitle = "API Key Error";
-              errorMsg = "Could not generate health plan. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+              errorMsg = "Could not generate health plan. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file, is valid, and the server has been restarted after changes.";
            } else {
                errorMsg = `Failed to generate health plan: ${errorMsg}. Check your inputs.`;
            }
@@ -207,6 +208,7 @@ export default function HealthMeter() {
                   <FormItem>
                     <FormLabel className="flex items-center"><Calendar className="mr-1 h-4 w-4"/>Age</FormLabel>
                     <FormControl>
+                      {/* Ensure value is controlled, defaulting to empty string if undefined */}
                       <Input type="number" placeholder="e.g., 30" {...field} value={field.value ?? ''}/>
                     </FormControl>
                     <FormMessage />

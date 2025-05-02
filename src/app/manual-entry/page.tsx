@@ -59,9 +59,10 @@ export default function ManualEntryPage() {
        let errorTitle = "Recipe Generation Failed";
         if (err instanceof Error) {
            errorMsg = err.message;
-            if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+            // Check for specific API key error messages
+            if (errorMsg.includes('API key not valid') || errorMsg.includes('400 Bad Request') || errorMsg.includes('API_KEY_INVALID')) {
                errorTitle = "API Key Error";
-               errorMsg = "Could not generate recipe. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+               errorMsg = "Could not generate recipe. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file, is valid, and the server has been restarted after changes.";
             } else {
                 errorMsg = `Failed to generate recipe: ${errorMsg}. Please try again.`;
             }

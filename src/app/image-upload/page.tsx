@@ -99,9 +99,10 @@ export default function ImageUploadPage() {
       let errorTitle = "Extraction Failed";
       if (err instanceof Error) {
           errorMsg = err.message;
-           if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+           // Check for specific API key error messages
+           if (errorMsg.includes('API key not valid') || errorMsg.includes('400 Bad Request') || errorMsg.includes('API_KEY_INVALID')) {
               errorTitle = "API Key Error";
-              errorMsg = "Could not extract ingredients. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+              errorMsg = "Could not extract ingredients. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file, is valid, and the server has been restarted after changes.";
            } else {
                errorMsg = `Could not extract ingredients: ${errorMsg}. Try a clearer image.`;
            }
@@ -146,9 +147,10 @@ export default function ImageUploadPage() {
        let errorTitle = "Recipe Generation Failed";
         if (err instanceof Error) {
            errorMsg = err.message;
-            if (errorMsg.includes('API key not valid') || errorMsg.includes('400')) {
+            // Check for specific API key error messages
+            if (errorMsg.includes('API key not valid') || errorMsg.includes('400 Bad Request') || errorMsg.includes('API_KEY_INVALID')) {
                errorTitle = "API Key Error";
-               errorMsg = "Could not generate recipe. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file and is valid.";
+               errorMsg = "Could not generate recipe. Please ensure your GOOGLE_GENAI_API_KEY is set correctly in the .env file, is valid, and the server has been restarted after changes.";
             } else {
                 errorMsg = `Could not generate a recipe with these ingredients: ${errorMsg}`;
             }
