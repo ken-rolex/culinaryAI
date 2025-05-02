@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -97,18 +98,19 @@ export default function DietChatPage() {
         console.log("Suggested actions:", result.suggestedActions);
       }
 
-    } catch (error) {
-      console.error('Error calling chat assistant:', error);
+    } catch (err) {
+      console.error('Error calling chat assistant:', err);
+      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
       toast({
         variant: "destructive",
         title: "Chat Error",
-        description: "Sorry, I couldn't get a response. Please try again.",
+        description: `Sorry, I couldn't get a response: ${errorMsg}. Please check your API key and try again.`,
       });
       // Optionally add an error message to the chat
        const errorAssistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I encountered an error. Please try asking again."
+        content: `I encountered an error (${errorMsg}). Please try asking again or check your API key.`
       };
        setMessages(prev => [...prev, errorAssistantMessage]);
 

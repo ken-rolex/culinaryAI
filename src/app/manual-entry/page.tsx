@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -52,12 +53,13 @@ export default function ManualEntryPage() {
          title: "Recipe Generated!",
          description: `Enjoy your ${generatedRecipe.recipeName}!`,
        });
-    } catch (error) {
-      console.error('Error generating recipe:', error);
+    } catch (err) {
+      console.error('Error generating recipe:', err);
+       const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
        toast({
          variant: "destructive",
          title: "Uh oh! Something went wrong.",
-         description: "Failed to generate recipe. Please try again.",
+         description: `Failed to generate recipe: ${errorMsg}. Please check your API key configuration and try again.`,
        });
     } finally {
       setIsLoading(false);

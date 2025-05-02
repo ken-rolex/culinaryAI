@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, ChangeEvent } from 'react';
@@ -92,14 +93,15 @@ export default function ImageUploadPage() {
          title: "Ingredients Extracted!",
          description: `Found ${result.ingredients.length} ingredients.`,
        });
-    } catch (error) {
-      console.error('Error extracting ingredients:', error);
-      setError('Failed to extract ingredients from the image. Please try a clearer image or enter manually.');
-        toast({
-            variant: "destructive",
-            title: "Extraction Failed",
-            description: "Could not extract ingredients. Check the image or try manual entry.",
-        });
+    } catch (err) {
+      console.error('Error extracting ingredients:', err);
+      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setError(`Failed to extract ingredients: ${errorMsg}. Please try a clearer image or check your API key configuration.`);
+      toast({
+          variant: "destructive",
+          title: "Extraction Failed",
+          description: `Could not extract ingredients. Check the image or API key. Error: ${errorMsg}`,
+      });
     } finally {
       setIsExtracting(false);
     }
@@ -128,13 +130,14 @@ export default function ImageUploadPage() {
          title: "Recipe Generated!",
          description: `Enjoy your ${generatedRecipe.recipeName}!`,
        });
-    } catch (error) {
-      console.error('Error generating recipe:', error);
-      setError('Failed to generate recipe from the extracted ingredients.');
+    } catch (err) {
+      console.error('Error generating recipe:', err);
+       const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setError(`Failed to generate recipe: ${errorMsg}. Please check your API key configuration.`);
        toast({
          variant: "destructive",
          title: "Recipe Generation Failed",
-         description: "Could not generate a recipe with these ingredients.",
+         description: `Could not generate a recipe with these ingredients. Check API key. Error: ${errorMsg}`,
        });
     } finally {
       setIsGenerating(false);

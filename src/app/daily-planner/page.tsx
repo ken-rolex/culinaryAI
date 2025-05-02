@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -243,9 +244,10 @@ export default function DailyPlannerPage() {
             toast({ variant: "destructive", title: "No Exercises Found", description: result.notes || "Could not generate exercises for these preferences." });
         }
 
-    } catch (error) {
-        console.error("Error generating exercises:", error);
-        toast({ variant: "destructive", title: "Generation Failed", description: "Could not fetch exercise recommendations." });
+    } catch (err) {
+        console.error("Error generating exercises:", err);
+        const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
+        toast({ variant: "destructive", title: "Generation Failed", description: `Could not fetch exercise recommendations: ${errorMsg}. Check API key.` });
     } finally {
         setIsGeneratingExercises(false);
     }

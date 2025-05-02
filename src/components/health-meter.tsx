@@ -151,13 +151,14 @@ export default function HealthMeter() {
         title: "Health Plan Generated!",
         description: "Check out your personalized diet and suggestions below.",
       });
-    } catch (error) {
-      console.error('Error generating health plan:', error);
-      setError('Failed to generate health plan. Please check your inputs or try again later.');
+    } catch (err) {
+      console.error('Error generating health plan:', err);
+      const errorMsg = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setError(`Failed to generate health plan: ${errorMsg}. Please check your inputs or API key configuration.`);
       toast({
         variant: "destructive",
         title: "Plan Generation Failed",
-        description: "Could not generate a health plan. Please try again.",
+        description: `Could not generate a health plan. Check API key. Error: ${errorMsg}`,
       });
     } finally {
       setIsLoading(false);
@@ -196,7 +197,7 @@ export default function HealthMeter() {
                   <FormItem>
                     <FormLabel className="flex items-center"><Calendar className="mr-1 h-4 w-4"/>Age</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 30" {...field} />
+                      <Input type="number" placeholder="e.g., 30" {...field} value={field.value ?? ''}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -209,7 +210,7 @@ export default function HealthMeter() {
                   <FormItem>
                     <FormLabel className="flex items-center"><Scale className="mr-1 h-4 w-4"/>Weight (kg)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.1" placeholder="e.g., 70.5" {...field} />
+                      <Input type="number" step="0.1" placeholder="e.g., 70.5" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -222,7 +223,7 @@ export default function HealthMeter() {
                   <FormItem>
                     <FormLabel className="flex items-center"><Ruler className="mr-1 h-4 w-4"/>Height (cm)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 175" {...field} />
+                      <Input type="number" placeholder="e.g., 175" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
