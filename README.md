@@ -42,6 +42,11 @@ This Next.js application helps you generate recipes from ingredients, get person
       ```
     - **Important:** Replace `"YOUR_API_KEY_HERE"` with your actual API key obtained from Google AI Studio. Make sure the key is active and has the necessary permissions. If you encounter errors related to API calls (like 400 Bad Request or API key invalid), double-check this step and ensure the development server (`npm run dev`) is restarted after adding or changing the key.
 
+### Troubleshooting
+
+If you encounter an error indicating that the Generative Language API has not been used in your project or is disabled, you need to enable it in the Google Cloud Console. Navigate to the API's overview page in the console and enable it for your project. If you have just enabled the API, please allow a few minutes for the changes to propagate through the system before retrying.
+
+
 4.  **Run the development server:**
     ```bash
     npm run dev
