@@ -24,7 +24,7 @@ This Next.js application helps you generate recipes from ingredients, get person
 ![Screenshot 2025-06-27 014356 - Copy](https://github.com/user-attachments/assets/96d9b5cd-8b7f-40a9-977c-fe52ba5435e6)
 
 
-![Screenshot 2025-06-27 014356](https://github.com/user-attachments/assets/e1a7f88c-fe1b-4e35-bdd1-de5b257b638b)
+
 
 
 
