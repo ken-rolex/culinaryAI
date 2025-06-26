@@ -2,6 +2,52 @@
 
 This Next.js application helps you generate recipes from ingredients, get personalized health plans, and manage your daily meals and exercises.
 
+
+![Screenshot 2025-06-27 014229](https://github.com/user-attachments/assets/19cfb160-4113-4d99-aafa-c9689039cedb)
+
+
+![Screenshot 2025-06-27 014255](https://github.com/user-attachments/assets/f9aaab05-1e65-4095-86e6-4ef7ab7b5cdd)
+
+
+
+
+![Screenshot 2025-06-27 014321](https://github.com/user-attachments/assets/ef948efa-7a60-401f-9c64-2a7ee73d6ef1)
+
+
+
+![Screenshot 2025-06-27 014339](https://github.com/user-attachments/assets/93e03e3f-d8f5-4848-8016-9cfdcc3fd9e4)
+
+
+
+
+
+![Screenshot 2025-06-27 014356 - Copy](https://github.com/user-attachments/assets/96d9b5cd-8b7f-40a9-977c-fe52ba5435e6)
+
+
+![Screenshot 2025-06-27 014356](https://github.com/user-attachments/assets/e1a7f88c-fe1b-4e35-bdd1-de5b257b638b)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Features
 
 - **Recipe Generation**: Enter ingredients manually or upload a photo to get recipe suggestions.
